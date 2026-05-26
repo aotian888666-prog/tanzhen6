@@ -89,7 +89,8 @@ export default {
       tg_notify: 'false',
       tg_bot_token: '',
       tg_chat_id: '',
-      auto_reset_traffic: 'false'
+      auto_reset_traffic: 'false',
+      report_interval: '5'
     };
 
     try {
@@ -399,6 +400,11 @@ export default {
                 <label>后台标签栏名称</label>
                 <input type="text" id="cfg_admin_title" value="${sys.admin_title}">
               </div>
+              <div class="form-group">
+                <label>⏱️ Agent 上报间隔 (秒)</label>
+                <input type="number" id="cfg_report_interval" value="${sys.report_interval || '5'}" min="1" max="120" placeholder="默认 5 秒">
+                <span style="font-size:12px; color:#888; margin-top:5px;">* 默认 5 秒。修改后，需去对应的 VPS 重新执行一次安装命令才会生效。</span>
+              </div>
             </div>
             <div>
               <label style="font-size: 14px; font-weight: 600; margin-bottom: 10px; display: block; color: #555;">👁️ 前台展示控制</label>
@@ -538,7 +544,8 @@ export default {
                 show_tf: document.getElementById('cfg_show_tf').checked ? 'true' : 'false',
                 tg_notify: document.getElementById('cfg_tg_notify').value,
                 tg_bot_token: document.getElementById('cfg_tg_bot_token').value,
-                tg_chat_id: document.getElementById('cfg_tg_chat_id').value
+                tg_chat_id: document.getElementById('cfg_tg_chat_id').value,
+                report_interval: document.getElementById('cfg_report_interval').value || '5'
               }
             };
             const res = await fetch('/admin/api', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
@@ -598,6 +605,12 @@ export default {
     // 一键安装脚本 (/install.sh) - 完美兼容 Alpine/ash 和 Systemd/bash
     // ==========================================
     if (request.method === 'GET' && url.pathname === '/install.sh') {
+      let reportInterval = '5';
+      try {
+        const res = await env.DB.prepare("SELECT value FROM settings WHERE key = 'report_interval'").first();
+        if (res && res.value) reportInterval = res.value;
+      } catch(e) {}
+
       const osType = url.searchParams.get('os') || 'debian';
       const sh_bin = osType === 'alpine' ? "/bin/sh" : "/bin/bash";
       const cmdApp = "cur" + "l";
@@ -727,7 +740,7 @@ while true; do
   PAYLOAD="{\\"id\\": \\"\\$SERVER_ID\\", \\"secret\\": \\"\\$SECRET\\", \\"metrics\\": { \\"cpu\\": \\"\\$CPU\\", \\"ram\\": \\"\\$RAM\\", \\"ram_total\\": \\"\\$RAM_TOTAL\\", \\"ram_used\\": \\"\\$RAM_USED\\", \\"swap_total\\": \\"\\$SWAP_TOTAL\\", \\"swap_used\\": \\"\\$SWAP_USED\\", \\"disk\\": \\"\\$DISK\\", \\"disk_total\\": \\"\\$DISK_TOTAL\\", \\"disk_used\\": \\"\\$DISK_USED\\", \\"load\\": \\"\\$LOAD\\", \\"uptime\\": \\"\\$UPTIME\\", \\"boot_time\\": \\"\\$BOOT_TIME\\", \\"net_rx\\": \\"\\$RX_NOW\\", \\"net_tx\\": \\"\\$TX_NOW\\", \\"net_in_speed\\": \\"\\$RX_SPEED\\", \\"net_out_speed\\": \\"\\$TX_SPEED\\", \\"os\\": \\"\\$OS\\", \\"arch\\": \\"\\$ARCH\\", \\"cpu_info\\": \\"\\$CPU_INFO\\", \\"processes\\": \\"\\$PROCESSES\\", \\"tcp_conn\\": \\"\\$TCP_CONN\\", \\"udp_conn\\": \\"\\$UDP_CONN\\", \\"ip_v4\\": \\"\\$IPV4\\", \\"ip_v6\\": \\"\\$IPV6\\", \\"ping_ct\\": \\"\\$PING_CT\\", \\"ping_cu\\": \\"\\$PING_CU\\", \\"ping_cm\\": \\"\\$PING_CM\\", \\"ping_bd\\": \\"\\$PING_BD\\" }}"
   
   ${cmdApp} -s -X POST -H "Content-Type: application/json" -d "\\$PAYLOAD" "\\$WORKER_URL" > /dev/null
-  sleep 5
+  sleep ${reportInterval}
 done
 EOF
 
