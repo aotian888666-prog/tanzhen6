@@ -51,7 +51,8 @@
 
 ### 2. 单节点实时性能折线图
 <img width="3840" height="1738" alt="image" src="https://github.com/user-attachments/assets/81ce19c3-7554-4dd1-818a-7ca478d3eb0d" />
-<img width="3840" height="1738" alt="image" src="https://github.com/user-attachments/assets/5bacbf4f-2017-436a-a0b8-fe1812f9b3c3" />
+<img width="3840" height="1738" alt="image" src="https://github.com/user-attachments/assets/7024bd65-7ec2-4912-8c7a-38af36796cf3" />
+
 
 
 
