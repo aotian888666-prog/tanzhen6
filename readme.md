@@ -1,3 +1,24 @@
+## 📸 界面预览
+
+演示站点：https://tanzhen.kejikkk.com
+
+已添加支持alpine系统挂载探针，已个性化CSS设置，已添加网易云外链单曲循环，可通过CSS代码实现个性化探针主题实现
+
+### 1. 前台多节点大盘与全局统计
+<img width="3840" height="1738" alt="image" src="https://github.com/user-attachments/assets/1a1556c3-cd79-442c-87f2-cb56807cb6e6" />
+<img width="3840" height="1738" alt="image" src="https://github.com/user-attachments/assets/8a50e776-dc22-48dd-ae20-9524d17967a4" />
+<img width="3840" height="1738" alt="image" src="https://github.com/user-attachments/assets/fd115737-0bd0-4e7f-bc6c-bd141e4c22bf" />
+
+### 2. 单节点实时性能折线图
+<img width="3840" height="1738" alt="image" src="https://github.com/user-attachments/assets/81ce19c3-7554-4dd1-818a-7ca478d3eb0d" />
+<img width="3840" height="1738" alt="image" src="https://github.com/user-attachments/assets/7024bd65-7ec2-4912-8c7a-38af36796cf3" />
+
+### 3. 后台管理与全局设置
+<img width="3840" height="1738" alt="image" src="https://github.com/user-attachments/assets/9d4d21de-6f2a-4980-9b0c-c9850f1e1223" />
+<img width="3840" height="1738" alt="image" src="https://github.com/user-attachments/assets/f90c7c96-e145-49e9-889b-3e22d06af464" />
+<img width="3840" height="1738" alt="image" src="https://github.com/user-attachments/assets/c6989909-0ce7-4cc1-87e6-65d87e4ea48b" />
+
+---
 ## 🤝 参与贡献 (Contributing)
 
 如果你喜欢这个项目，欢迎提交 Pull Request，或者给个 ⭐ **Star** 支持一下！
@@ -6,9 +27,6 @@
 
 10台VPS以下可以使用cf版本轻量部署，10台VPS以上建议使用docker部署在免费容器northflank https://github.com/a63414262/server-monitor
 
-演示站点：https://tanzhen.kejikkk.com
-
-已添加支持alpine系统挂载探针，已个性化CSS设置，已添加网易云外链单曲循环，可通过CSS代码实现个性化探针主题实现
 
 基于 Cloudflare Workers 和 D1 数据库构建的轻量级、零成本、高定制化的服务器探针大盘。
 完美复刻了商业级探针（如 Nezha）的核心体验，但无需额外部署任何服务端 VPS！完全白嫖 Cloudflare 的免费 Serverless 资源。
@@ -38,32 +56,7 @@
 - **傻瓜式一键安装**：后台自动生成被控端 Bash 一键安装命令，自动注册 Systemd 守护进程。
 
 ---
-## 📸 界面预览
 
-### 1. 前台多节点大盘与全局统计
-<img width="3840" height="1738" alt="image" src="https://github.com/user-attachments/assets/1a1556c3-cd79-442c-87f2-cb56807cb6e6" />
-<img width="3840" height="1738" alt="image" src="https://github.com/user-attachments/assets/8a50e776-dc22-48dd-ae20-9524d17967a4" />
-<img width="3840" height="1738" alt="image" src="https://github.com/user-attachments/assets/fd115737-0bd0-4e7f-bc6c-bd141e4c22bf" />
-
-
-
-
-
-### 2. 单节点实时性能折线图
-<img width="3840" height="1738" alt="image" src="https://github.com/user-attachments/assets/81ce19c3-7554-4dd1-818a-7ca478d3eb0d" />
-<img width="3840" height="1738" alt="image" src="https://github.com/user-attachments/assets/7024bd65-7ec2-4912-8c7a-38af36796cf3" />
-
-
-
-
-### 3. 后台管理与全局设置
-<img width="3840" height="1738" alt="image" src="https://github.com/user-attachments/assets/9d4d21de-6f2a-4980-9b0c-c9850f1e1223" />
-<img width="3840" height="1738" alt="image" src="https://github.com/user-attachments/assets/f90c7c96-e145-49e9-889b-3e22d06af464" />
-<img width="3840" height="1738" alt="image" src="https://github.com/user-attachments/assets/c6989909-0ce7-4cc1-87e6-65d87e4ea48b" />
-
-
-
----
 
 ## 🚀 部署指南 (Deployment)
 第一步：配置 Cloudflare 环境
