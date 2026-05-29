@@ -91,7 +91,10 @@ export default {
       tg_bot_token: '',
       tg_chat_id: '',
       auto_reset_traffic: 'false',
-      report_interval: '5'
+      report_interval: '5',
+      ping_node_ct: 'default',
+      ping_node_cu: 'default',
+      ping_node_cm: 'default'
     };
 
     try {
@@ -341,6 +344,473 @@ export default {
         }
       }
 
+      // 处理节点列表渲染数据
+      const rawNodeData = `市级节点
+陕西西安移动
+sn-xian-cm-v4.ip.zstaticcdn.com:443
+江苏无锡移动
+js-wuxi-cm-v4.ip.zstaticcdn.com:443
+山东济南移动
+sd-jinan-cm-v4.ip.zstaticcdn.com:443
+江苏苏州移动
+js-suzhou-cm-v4.ip.zstaticcdn.com:443
+浙江宁波移动
+zj-ningbo-cm-v4.ip.zstaticcdn.com:443
+广东东莞移动
+gd-dongguan-cm-v4.ip.zstaticcdn.com:443
+四川成都移动
+sc-chengdu-cm-v4.ip.zstaticcdn.com:443
+贵州贵阳移动
+gz-guiyang-cm-v4.ip.zstaticcdn.com:443
+湖南株洲移动
+hn-zhuzhou-cm-v4.ip.zstaticcdn.com:443
+河南郑州移动
+ha-zhengzhou-cm-v4.ip.zstaticcdn.com:443
+内蒙古呼和浩特移动
+nm-huhehaote-cm-v4.ip.zstaticcdn.com:443
+广东广州移动
+gd-guangzhou-cm-v4.ip.zstaticcdn.com:443
+福建厦门联通
+fj-xiamen-cu-v4.ip.zstaticcdn.com:443
+福建宁德联通
+fj-ningde-cu-v4.ip.zstaticcdn.com:443
+福建南平联通
+fj-nanping-cu-v4.ip.zstaticcdn.com:443
+河北廊坊联通
+he-langfang-cu-v4.ip.zstaticcdn.com:443
+贵州贵阳联通
+gz-guiyang-cu-v4.ip.zstaticcdn.com:443
+内蒙古呼和浩特联通
+nm-huhehaote-cu-v4.ip.zstaticcdn.com:443
+湖南郴州电信
+hn-chenzhou-ct-v4.ip.zstaticcdn.com:443
+浙江杭州电信
+zj-hangzhou-ct-v4.ip.zstaticcdn.com:443
+海南海口电信
+hi-haikou-ct-v4.ip.zstaticcdn.com:443
+湖北武汉电信
+hb-wuhan-ct-v4.ip.zstaticcdn.com:443
+甘肃兰州电信
+gs-lanzhou-ct-v4.ip.zstaticcdn.com:443
+江苏南京电信
+js-nanjing-ct-v4.ip.zstaticcdn.com:443
+陕西西安电信
+sn-xian-ct-v4.ip.zstaticcdn.com:443
+广东广州电信
+gd-guangzhou-ct-v4.ip.zstaticcdn.com:443
+辽宁辽阳电信
+ln-liaoyang-ct-v4.ip.zstaticcdn.com:443
+山东青岛电信
+sd-qingdao-ct-v4.ip.zstaticcdn.com:443
+福建福州电信
+fj-fuzhou-ct-v4.ip.zstaticcdn.com:443
+新疆乌鲁木齐电信
+xj-wulumuqi-ct-v4.ip.zstaticcdn.com:443
+湖南长沙电信
+hn-changsha-ct-v4.ip.zstaticcdn.com:443
+甘肃中卫电信
+gs-zhongwei-ct-v4.ip.zstaticcdn.com:443
+山西太原电信
+sx-taiyuan-ct-v4.ip.zstaticcdn.com:443
+安徽芜湖电信
+ah-wuhu-ct-v4.ip.zstaticcdn.com:443
+河南郑州电信
+ha-zhengzhou-ct-v4.ip.zstaticcdn.com:443
+甘肃庆阳电信
+gs-qingyang-ct-v4.ip.zstaticcdn.com:443
+内蒙古呼和浩特电信
+nm-huhehaote-ct-v4.ip.zstaticcdn.com:443
+湖北孝感电信
+hb-xiaogan-ct-v4.ip.zstaticcdn.com:443
+湖北宜昌电信
+hb-yichang-ct-v4.ip.zstaticcdn.com:443
+湖南怀化电信
+hn-huaihua-ct-v4.ip.zstaticcdn.com:443
+广东深圳电信
+gd-shenzhen-ct-v4.ip.zstaticcdn.com:443
+广东揭阳电信
+gd-jieyang-ct-v4.ip.zstaticcdn.com:443
+浙江台州电信
+zj-taizhou-ct-v4.ip.zstaticcdn.com:443
+西藏拉萨电信
+xz-lasa-ct-v4.ip.zstaticcdn.com:443
+湖南永州电信
+hn-yongzhou-ct-v4.ip.zstaticcdn.com:443
+江苏苏州电信
+js-suzhou-ct-v4.ip.zstaticcdn.com:443
+江苏镇江电信
+js-zhenjiang-ct-v4.ip.zstaticcdn.com:443
+河北雄安电信
+he-xiongan-ct-v4.ip.zstaticcdn.com:443
+湖南株洲电信
+hn-zhuzhou-ct-v4.ip.zstaticcdn.com:443
+湖北襄阳电信
+hb-xiangyang-ct-v4.ip.zstaticcdn.com:443
+江苏南京联通
+js-nanjing-cu-v4.ip.zstaticcdn.com:443
+江苏南京移动
+js-nanjing-cm-v4.ip.zstaticcdn.com:443
+安徽合肥移动
+ah-hefei-cm-v4.ip.zstaticcdn.com:443
+安徽合肥电信
+ah-hefei-ct-v4.ip.zstaticcdn.com:443
+安徽合肥联通
+ah-hefei-cu-v4.ip.zstaticcdn.com:443
+广东东莞联通
+gd-dongguan-cu-v4.ip.zstaticcdn.com:443
+湖南长沙联通
+hn-changsha-cu-v4.ip.zstaticcdn.com:443
+河南洛阳联通
+ha-luoyang-cu-v4.ip.zstaticcdn.com:443
+吉林长春联通
+jl-changchun-cu-v4.ip.zstaticcdn.com:443
+江苏台州联通
+js-taizhou-cu-v4.ip.zstaticcdn.com:443
+陕西咸阳联通
+sn-xianyang-cu-v4.ip.zstaticcdn.com:443
+陕西安康联通
+sn-ankang-cu-v4.ip.zstaticcdn.com:443
+陕西渭南联通
+sn-weinan-cu-v4.ip.zstaticcdn.com:443
+广东广州联通
+gd-guangzhou-cu-v4.ip.zstaticcdn.com:443
+安徽安庆联通
+ah-anqing-cu-v4.ip.zstaticcdn.com:443
+安徽蚌埠联通
+ah-bengbu-cu-v4.ip.zstaticcdn.com:443
+安徽亳州联通
+ah-bozhou-cu-v4.ip.zstaticcdn.com:443
+安徽宿州联通
+ah-suzhou-cu-v4.ip.zstaticcdn.com:443
+福建龙岩联通
+fj-longyan-cu-v4.ip.zstaticcdn.com:443
+福建莆田联通
+fj-putian-cu-v4.ip.zstaticcdn.com:443
+福建泉州联通
+fj-quanzhou-cu-v4.ip.zstaticcdn.com:443
+福建三明联通
+fj-sanming-cu-v4.ip.zstaticcdn.com:443
+福建漳州联通
+fj-zhangzhou-cu-v4.ip.zstaticcdn.com:443
+广东潮州联通
+gd-chaozhou-cu-v4.ip.zstaticcdn.com:443
+广东佛山联通
+gd-foshan-cu-v4.ip.zstaticcdn.com:443
+广东河源联通
+gd-heyuan-cu-v4.ip.zstaticcdn.com:443
+广东惠州联通
+gd-huizhou-cu-v4.ip.zstaticcdn.com:443
+广东江门联通
+gd-jiangmen-cu-v4.ip.zstaticcdn.com:443
+广东茂名联通
+gd-maoming-cu-v4.ip.zstaticcdn.com:443
+广东汕头联通
+gd-shantou-cu-v4.ip.zstaticcdn.com:443
+广东汕尾联通
+gd-shanwei-cu-v4.ip.zstaticcdn.com:443
+广东韶关联通
+gd-shaoguan-cu-v4.ip.zstaticcdn.com:443
+广东阳江联通
+gd-yangjiang-cu-v4.ip.zstaticcdn.com:443
+广东云浮联通
+gd-yunfu-cu-v4.ip.zstaticcdn.com:443
+广东湛江联通
+gd-zhanjiang-cu-v4.ip.zstaticcdn.com:443
+广东肇庆联通
+gd-zhaoqing-cu-v4.ip.zstaticcdn.com:443
+广东中山联通
+gd-zhongshan-cu-v4.ip.zstaticcdn.com:443
+广东珠海联通
+gd-zhuhai-cu-v4.ip.zstaticcdn.com:443
+广西桂林联通
+gx-guilin-cu-v4.ip.zstaticcdn.com:443
+广西柳州联通
+gx-liuzhou-cu-v4.ip.zstaticcdn.com:443
+广西南宁联通
+gx-nanning-cu-v4.ip.zstaticcdn.com:443
+河南安阳联通
+ha-anyang-cu-v4.ip.zstaticcdn.com:443
+河南鹤壁联通
+ha-hebi-cu-v4.ip.zstaticcdn.com:443
+河南焦作联通
+ha-jiaozuo-cu-v4.ip.zstaticcdn.com:443
+河南济源联通
+ha-jiyuan-cu-v4.ip.zstaticcdn.com:443
+河南开封联通
+ha-kaifeng-cu-v4.ip.zstaticcdn.com:443
+河南漯河联通
+ha-luohe-cu-v4.ip.zstaticcdn.com:443
+河南南阳联通
+ha-nanyang-cu-v4.ip.zstaticcdn.com:443
+河南平顶山联通
+ha-pingdingshan-cu-v4.ip.zstaticcdn.com:443
+河南三门峡联通
+ha-sanmenxia-cu-v4.ip.zstaticcdn.com:443
+河南商丘联通
+ha-shangqiu-cu-v4.ip.zstaticcdn.com:443
+河南新乡联通
+ha-xinxiang-cu-v4.ip.zstaticcdn.com:443
+河南信阳联通
+ha-xinyang-cu-v4.ip.zstaticcdn.com:443
+河南许昌联通
+ha-xuchang-cu-v4.ip.zstaticcdn.com:443
+河南周口联通
+ha-zhoukou-cu-v4.ip.zstaticcdn.com:443
+河南驻马店联通
+ha-zhumadian-cu-v4.ip.zstaticcdn.com:443
+湖北鄂州联通
+hb-ezhou-cu-v4.ip.zstaticcdn.com:443
+湖北黄冈联通
+hb-huanggang-cu-v4.ip.zstaticcdn.com:443
+湖北黄石联通
+hb-huangshi-cu-v4.ip.zstaticcdn.com:443
+湖北荆门联通
+hb-jingmen-cu-v4.ip.zstaticcdn.com:443
+湖北荆州联通
+hb-jingzhou-cu-v4.ip.zstaticcdn.com:443
+湖北十堰联通
+hb-shiyan-cu-v4.ip.zstaticcdn.com:443
+湖北随州联通
+hb-suizhou-cu-v4.ip.zstaticcdn.com:443
+河北保定联通
+he-baoding-cu-v4.ip.zstaticcdn.com:443
+河北沧州联通
+he-cangzhou-cu-v4.ip.zstaticcdn.com:443
+河北承德联通
+he-chengde-cu-v4.ip.zstaticcdn.com:443
+河北邯郸联通
+he-handan-cu-v4.ip.zstaticcdn.com:443
+河北衡水联通
+he-hengshui-cu-v4.ip.zstaticcdn.com:443
+河北石家庄联通
+he-shijiazhuang-cu-v4.ip.zstaticcdn.com:443
+河北唐山联通
+he-tangshan-cu-v4.ip.zstaticcdn.com:443
+河北邢台联通
+he-xingtai-cu-v4.ip.zstaticcdn.com:443
+黑龙江大庆联通
+hl-daqing-cu-v4.ip.zstaticcdn.com:443
+黑龙江大兴安岭联通
+hl-daxinganling-cu-v4.ip.zstaticcdn.com:443
+黑龙江哈尔滨联通
+hl-haerbin-cu-v4.ip.zstaticcdn.com:443
+黑龙江鹤岗联通
+hl-hegang-cu-v4.ip.zstaticcdn.com:443
+黑龙江黑河联通
+hl-heihe-cu-v4.ip.zstaticcdn.com:443
+黑龙江佳木斯联通
+hl-jiamusi-cu-v4.ip.zstaticcdn.com:443
+黑龙江鸡西联通
+hl-jixi-cu-v4.ip.zstaticcdn.com:443
+黑龙江牡丹江联通
+hl-mudanjiang-cu-v4.ip.zstaticcdn.com:443
+黑龙江齐齐哈尔联通
+hl-qiqihaer-cu-v4.ip.zstaticcdn.com:443
+黑龙江七台河联通
+hl-qitaihe-cu-v4.ip.zstaticcdn.com:443
+黑龙江双鸭山联通
+hl-shuangyashan-cu-v4.ip.zstaticcdn.com:443
+黑龙江绥化联通
+hl-suihua-cu-v4.ip.zstaticcdn.com:443
+黑龙江伊春联通
+hl-yichun-cu-v4.ip.zstaticcdn.com:443
+湖南衡阳联通
+hn-hengyang-cu-v4.ip.zstaticcdn.com:443
+湖南娄底联通
+hn-loudi-cu-v4.ip.zstaticcdn.com:443
+湖南邵阳联通
+hn-shaoyang-cu-v4.ip.zstaticcdn.com:443
+湖南湘潭联通
+hn-xiangtan-cu-v4.ip.zstaticcdn.com:443
+湖南湘西联通
+hn-xiangxi-cu-v4.ip.zstaticcdn.com:443
+湖南张家界联通
+hn-zhangjiajie-cu-v4.ip.zstaticcdn.com:443
+吉林吉林联通
+jl-jilin-cu-v4.ip.zstaticcdn.com:443
+吉林四平联通
+jl-siping-cu-v4.ip.zstaticcdn.com:443
+吉林松原联通
+jl-songyuan-cu-v4.ip.zstaticcdn.com:443
+吉林通化联通
+jl-tonghua-cu-v4.ip.zstaticcdn.com:443
+江苏连云港联通
+js-lianyungang-cu-v4.ip.zstaticcdn.com:443
+江苏南通联通
+js-nantong-cu-v4.ip.zstaticcdn.com:443
+江苏徐州联通
+js-xuzhou-cu-v4.ip.zstaticcdn.com:443
+江苏盐城联通
+js-yancheng-cu-v4.ip.zstaticcdn.com:443
+江苏扬州联通
+js-yangzhou-cu-v4.ip.zstaticcdn.com:443
+江西抚州联通
+jx-fuzhou-cu-v4.ip.zstaticcdn.com:443
+江西吉安联通
+jx-jian-cu-v4.ip.zstaticcdn.com:443
+江西景德镇联通
+jx-jingdezhen-cu-v4.ip.zstaticcdn.com:443
+江西九江联通
+jx-jiujiang-cu-v4.ip.zstaticcdn.com:443
+江西南昌联通
+jx-nanchang-cu-v4.ip.zstaticcdn.com:443
+江西上饶联通
+jx-shangrao-cu-v4.ip.zstaticcdn.com:443
+江西新余联通
+jx-xinyu-cu-v4.ip.zstaticcdn.com:443
+江西宜春联通
+jx-yichun-cu-v4.ip.zstaticcdn.com:443
+江西鹰潭联通
+jx-yingtan-cu-v4.ip.zstaticcdn.com:443
+辽宁朝阳联通
+ln-chaoyang-cu-v4.ip.zstaticcdn.com:443
+辽宁大连联通
+ln-dalian-cu-v4.ip.zstaticcdn.com:443
+辽宁丹东联通
+ln-dandong-cu-v4.ip.zstaticcdn.com:443
+辽宁抚顺联通
+ln-fushun-cu-v4.ip.zstaticcdn.com:443
+辽宁阜新联通
+ln-fuxin-cu-v4.ip.zstaticcdn.com:443
+辽宁葫芦岛联通
+ln-huludao-cu-v4.ip.zstaticcdn.com:443
+辽宁锦州联通
+ln-jinzhou-cu-v4.ip.zstaticcdn.com:443
+辽宁沈阳联通
+ln-shenyang-cu-v4.ip.zstaticcdn.com:443
+辽宁铁岭联通
+ln-tieling-cu-v4.ip.zstaticcdn.com:443
+辽宁营口联通
+ln-yingkou-cu-v4.ip.zstaticcdn.com:443
+内蒙古包头联通
+nm-baotou-cu-v4.ip.zstaticcdn.com:443
+内蒙古巴彦淖尔联通
+nm-bayannaoer-cu-v4.ip.zstaticcdn.com:443
+内蒙古赤峰联通
+nm-chifeng-cu-v4.ip.zstaticcdn.com:443
+内蒙古呼伦贝尔联通
+nm-hulunbeier-cu-v4.ip.zstaticcdn.com:443
+内蒙古通辽联通
+nm-tongliao-cu-v4.ip.zstaticcdn.com:443
+内蒙古乌海联通
+nm-wuhai-cu-v4.ip.zstaticcdn.com:443
+内蒙古乌兰察布联通
+nm-wulanchabu-cu-v4.ip.zstaticcdn.com:443
+内蒙古锡林郭勒联通
+nm-xilinguole-cu-v4.ip.zstaticcdn.com:443
+内蒙古兴安联通
+nm-xingan-cu-v4.ip.zstaticcdn.com:443
+宁夏银川联通
+nx-yinchuan-cu-v4.ip.zstaticcdn.com:443
+青海西宁联通
+qh-xining-cu-v4.ip.zstaticcdn.com:443
+四川达州联通
+sc-dazhou-cu-v4.ip.zstaticcdn.com:443
+四川乐山联通
+sc-leshan-cu-v4.ip.zstaticcdn.com:443
+四川凉山联通
+sc-liangshan-cu-v4.ip.zstaticcdn.com:443
+四川泸州联通
+sc-luzhou-cu-v4.ip.zstaticcdn.com:443
+四川绵阳联通
+sc-mianyang-cu-v4.ip.zstaticcdn.com:443
+四川内江联通
+sc-neijiang-cu-v4.ip.zstaticcdn.com:443
+四川资阳联通
+sc-ziyang-cu-v4.ip.zstaticcdn.com:443
+山东滨州联通
+sd-binzhou-cu-v4.ip.zstaticcdn.com:443
+山东东营联通
+sd-dongying-cu-v4.ip.zstaticcdn.com:443
+山东菏泽联通
+sd-heze-cu-v4.ip.zstaticcdn.com:443
+山东济宁联通
+sd-jining-cu-v4.ip.zstaticcdn.com:443
+山东临沂联通
+sd-linyi-cu-v4.ip.zstaticcdn.com:443
+山东泰安联通
+sd-taian-cu-v4.ip.zstaticcdn.com:443
+山东潍坊联通
+sd-weifang-cu-v4.ip.zstaticcdn.com:443
+山东威海联通
+sd-weihai-cu-v4.ip.zstaticcdn.com:443
+山东烟台联通
+sd-yantai-cu-v4.ip.zstaticcdn.com:443
+山东枣庄联通
+sd-zaozhuang-cu-v4.ip.zstaticcdn.com:443
+山东淄博联通
+sd-zibo-cu-v4.ip.zstaticcdn.com:443
+陕西宝鸡联通
+sn-baoji-cu-v4.ip.zstaticcdn.com:443
+陕西商洛联通
+sn-shangluo-cu-v4.ip.zstaticcdn.com:443
+陕西榆林联通
+sn-yulin-cu-v4.ip.zstaticcdn.com:443
+山西长治联通
+sx-changzhi-cu-v4.ip.zstaticcdn.com:443
+山西晋中联通
+sx-jinzhong-cu-v4.ip.zstaticcdn.com:443
+山西临汾联通
+sx-linfen-cu-v4.ip.zstaticcdn.com:443
+山西吕梁联通
+sx-lvliang-cu-v4.ip.zstaticcdn.com:443
+山西朔州联通
+sx-shuozhou-cu-v4.ip.zstaticcdn.com:443
+山西阳泉联通
+sx-yangquan-cu-v4.ip.zstaticcdn.com:443
+山西运城联通
+sx-yuncheng-cu-v4.ip.zstaticcdn.com:443
+新疆巴音郭楞联通
+xj-bayinguoleng-cu-v4.ip.zstaticcdn.com:443
+新疆哈密联通
+xj-hami-cu-v4.ip.zstaticcdn.com:443
+新疆和田联通
+xj-hetian-cu-v4.ip.zstaticcdn.com:443
+新疆石河子联通
+xj-shihezi-cu-v4.ip.zstaticcdn.com:443
+新疆吐鲁番联通
+xj-tulufan-cu-v4.ip.zstaticcdn.com:443
+云南德宏联通
+yn-dehong-cu-v4.ip.zstaticcdn.com:443
+云南昆明联通
+yn-kunming-cu-v4.ip.zstaticcdn.com:443
+云南普洱联通
+yn-puer-cu-v4.ip.zstaticcdn.com:443
+云南曲靖联通
+yn-qujing-cu-v4.ip.zstaticcdn.com:443
+云南西双版纳联通
+yn-xishuangbanna-cu-v4.ip.zstaticcdn.com:443
+浙江湖州联通
+zj-huzhou-cu-v4.ip.zstaticcdn.com:443
+浙江嘉兴联通
+zj-jiaxing-cu-v4.ip.zstaticcdn.com:443
+浙江金华联通
+zj-jinhua-cu-v4.ip.zstaticcdn.com:443
+浙江丽水联通
+zj-lishui-cu-v4.ip.zstaticcdn.com:443
+浙江绍兴联通
+zj-shaoxing-cu-v4.ip.zstaticcdn.com:443
+浙江温州联通
+zj-wenzhou-cu-v4.ip.zstaticcdn.com:443`;
+      const rawLines = rawNodeData.split('\n').map(l => l.trim()).filter(l => l);
+      const pingOpts = { ct: [], cu: [], cm: [] };
+      for (let i = 0; i < rawLines.length; i += 2) {
+         const name = rawLines[i];
+         if (name === '市级节点') { i--; continue; }
+         const host = (rawLines[i+1] || '').split(':')[0]; // 剥离443端口保证curl正常测试
+         if (name.includes('电信')) pingOpts.ct.push({name, host});
+         else if (name.includes('联通')) pingOpts.cu.push({name, host});
+         else if (name.includes('移动')) pingOpts.cm.push({name, host});
+      }
+
+      const buildOpts = (group, selectedVal) => {
+          let opts = `<option value="default" ${selectedVal === 'default' ? 'selected' : ''}>默认节点 (双栈多节点轮询)</option>`;
+          group.forEach(n => {
+             opts += `<option value="${n.host}" ${selectedVal === n.host ? 'selected' : ''}>${n.name}</option>`;
+          });
+          return opts;
+      };
+
       const html = `<!DOCTYPE html>
       <html>
       <head>
@@ -421,7 +891,6 @@ export default {
               <div class="form-group">
                 <label>⏱️ Agent 上报间隔 (秒)</label>
                 <input type="number" id="cfg_report_interval" value="${sys.report_interval || '5'}" min="1" max="120" placeholder="默认 5 秒">
-                <span style="font-size:12px; color:#888; margin-top:5px;">* 默认 5 秒。修改后，需去对应的 VPS 重新执行一次安装命令才会生效。</span>
               </div>
             </div>
             <div>
@@ -469,6 +938,22 @@ export default {
               <div class="form-group">
                 <label>Chat ID</label>
                 <input type="text" id="cfg_tg_chat_id" value="${sys.tg_chat_id || ''}" placeholder="如: 123456789">
+              </div>
+
+              <hr style="margin: 20px 0; border: none; border-top: 1px dashed #ccc;">
+              <label style="font-size: 14px; font-weight: 600; margin-bottom: 10px; display: block; color: #8b5cf6;">📡 三网延迟测试节点选择</label>
+              <div class="form-group">
+                <label>电信 (CT) 测速节点</label>
+                <select id="cfg_ping_node_ct">${buildOpts(pingOpts.ct, sys.ping_node_ct)}</select>
+              </div>
+              <div class="form-group">
+                <label>联通 (CU) 测速节点</label>
+                <select id="cfg_ping_node_cu">${buildOpts(pingOpts.cu, sys.ping_node_cu)}</select>
+              </div>
+              <div class="form-group">
+                <label>移动 (CM) 测速节点</label>
+                <select id="cfg_ping_node_cm">${buildOpts(pingOpts.cm, sys.ping_node_cm)}</select>
+                <span style="font-size:12px; color:#888; margin-top:5px; display:block;">* 提示：修改节点或上报间隔后，需去对应的 VPS 重新执行一次安装命令才会生效。</span>
               </div>
 
             </div>
@@ -563,7 +1048,10 @@ export default {
                 tg_notify: document.getElementById('cfg_tg_notify').value,
                 tg_bot_token: document.getElementById('cfg_tg_bot_token').value,
                 tg_chat_id: document.getElementById('cfg_tg_chat_id').value,
-                report_interval: document.getElementById('cfg_report_interval').value || '5'
+                report_interval: document.getElementById('cfg_report_interval').value || '5',
+                ping_node_ct: document.getElementById('cfg_ping_node_ct').value,
+                ping_node_cu: document.getElementById('cfg_ping_node_cu').value,
+                ping_node_cm: document.getElementById('cfg_ping_node_cm').value
               }
             };
             const res = await fetch('/admin/api', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
@@ -624,9 +1112,19 @@ export default {
     // ==========================================
     if (request.method === 'GET' && url.pathname === '/install.sh') {
       let reportInterval = '5';
+      let pingCt = 'default';
+      let pingCu = 'default';
+      let pingCm = 'default';
       try {
-        const res = await env.DB.prepare("SELECT value FROM settings WHERE key = 'report_interval'").first();
-        if (res && res.value) reportInterval = res.value;
+        const res = await env.DB.prepare("SELECT key, value FROM settings WHERE key IN ('report_interval', 'ping_node_ct', 'ping_node_cu', 'ping_node_cm')").all();
+        if (res && res.results) {
+           res.results.forEach(r => {
+              if (r.key === 'report_interval') reportInterval = r.value || '5';
+              if (r.key === 'ping_node_ct') pingCt = r.value || 'default';
+              if (r.key === 'ping_node_cu') pingCu = r.value || 'default';
+              if (r.key === 'ping_node_cm') pingCm = r.value || 'default';
+           });
+        }
       } catch(e) {}
 
       const osType = url.searchParams.get('os') || 'debian';
@@ -687,10 +1185,19 @@ while true; do
   if [ \\$((LOOP_COUNT % 6)) -eq 0 ]; then
     idx=\\$((LOOP_COUNT % 3))
     case \\$idx in
-      0) CT_NODE="bj-ct-dualstack.ip.zstaticcdn.com"; CU_NODE="bj-cu-dualstack.ip.zstaticcdn.com"; CM_NODE="bj-cm-dualstack.ip.zstaticcdn.com" ;;
-      1) CT_NODE="sh-ct-dualstack.ip.zstaticcdn.com"; CU_NODE="sh-cu-dualstack.ip.zstaticcdn.com"; CM_NODE="sh-cm-dualstack.ip.zstaticcdn.com" ;;
-      2) CT_NODE="gd-ct-dualstack.ip.zstaticcdn.com"; CU_NODE="gd-cu-dualstack.ip.zstaticcdn.com"; CM_NODE="gd-cm-dualstack.ip.zstaticcdn.com" ;;
+      0) D_CT="bj-ct-dualstack.ip.zstaticcdn.com"; D_CU="bj-cu-dualstack.ip.zstaticcdn.com"; D_CM="bj-cm-dualstack.ip.zstaticcdn.com" ;;
+      1) D_CT="sh-ct-dualstack.ip.zstaticcdn.com"; D_CU="sh-cu-dualstack.ip.zstaticcdn.com"; D_CM="sh-cm-dualstack.ip.zstaticcdn.com" ;;
+      2) D_CT="gd-ct-dualstack.ip.zstaticcdn.com"; D_CU="gd-cu-dualstack.ip.zstaticcdn.com"; D_CM="gd-cm-dualstack.ip.zstaticcdn.com" ;;
     esac
+    
+    CT_NODE="${pingCt}"
+    CU_NODE="${pingCu}"
+    CM_NODE="${pingCm}"
+    
+    [ "\\$CT_NODE" = "default" ] && CT_NODE="\\$D_CT"
+    [ "\\$CU_NODE" = "default" ] && CU_NODE="\\$D_CU"
+    [ "\\$CM_NODE" = "default" ] && CM_NODE="\\$D_CM"
+
     PING_CT=\\$(get_http_ping "\\$CT_NODE")
     PING_CU=\\$(get_http_ping "\\$CU_NODE")
     PING_CM=\\$(get_http_ping "\\$CM_NODE")
@@ -1293,7 +1800,7 @@ echo "✅ Linux 探针安装成功！"
 
             const pingHtml = `<div class="ping-box"><span>电信 <span style="color:${getColor(server.ping_ct)}; font-weight:bold;">${server.ping_ct === '0' ? '超时' : server.ping_ct + 'ms'}</span></span><span>联通 <span style="color:${getColor(server.ping_cu)}; font-weight:bold;">${server.ping_cu === '0' ? '超时' : server.ping_cu + 'ms'}</span></span><span>移动 <span style="color:${getColor(server.ping_cm)}; font-weight:bold;">${server.ping_cm === '0' ? '超时' : server.ping_cm + 'ms'}</span></span><span>字节 <span style="color:${getColor(server.ping_bd)}; font-weight:bold;">${server.ping_bd === '0' ? '超时' : server.ping_bd + 'ms'}</span></span></div>`;
 
-            // 处理容量的显示 (假设从 agent 获取的单位是 MB，需要乘上 1024*1024 再格式化)
+            // 处理容量的显示
             const ramUsedStr = formatBytes((parseFloat(server.ram_used || 0) * 1048576).toString());
             const ramTotalStr = formatBytes((parseFloat(server.ram_total || 0) * 1048576).toString());
             const diskUsedStr = formatBytes((parseFloat(server.disk_used || 0) * 1048576).toString());
