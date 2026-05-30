@@ -25,7 +25,6 @@ export default {
         const { results: columns } = await env.DB.prepare(`PRAGMA table_info(servers)`).all();
         const existingCols = columns.map(c => c.name);
         
-        // 新增了 virt 字段用于虚拟化识别
         const newCols = {
           ping_ct: "TEXT DEFAULT '0'", ping_cu: "TEXT DEFAULT '0'", ping_cm: "TEXT DEFAULT '0'", ping_bd: "TEXT DEFAULT '0'",
           monthly_rx: "TEXT DEFAULT '0'", monthly_tx: "TEXT DEFAULT '0'", last_rx: "TEXT DEFAULT '0'", last_tx: "TEXT DEFAULT '0'", reset_month: "TEXT DEFAULT ''",
@@ -253,7 +252,6 @@ export default {
       .view-panel { display: none; } .view-panel.active { display: block; animation: fadeIn 0.3s ease; }
       @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
       
-      /* 新增的堆叠卡片样式 */
       .stat-group { display: flex; flex-direction: column; margin-bottom: 8px; }
       .stat-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: inherit; }
       .stat-bar-full { width: 100%; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
@@ -262,7 +260,6 @@ export default {
       .theme2 .stat-subtext, .theme4 .stat-subtext, .theme5 .stat-subtext { color: rgba(255,255,255,0.6); }
       .card-right { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-left: 15px; border-left: 1px solid rgba(150,150,150,0.1); min-width: 0; }
       
-      /* 表格内进度条通用样式修复 */
       .stat-bar { width: 100%; height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden; }
       .stat-bar > div { height: 100%; border-radius: 2px; transition: width 0.3s; }
     `;
@@ -953,7 +950,7 @@ zj-wenzhou-cu-v4.ip.zstaticcdn.com:443`;
               <div class="form-group">
                 <label>移动 (CM) 测速节点</label>
                 <select id="cfg_ping_node_cm">${buildOpts(pingOpts.cm, sys.ping_node_cm)}</select>
-                <span style="font-size:12px; color:#888; margin-top:5px; display:block;">* 提示：修改节点或上报间隔后，需去对应的 VPS 重新执行一次安装命令才会生效。</span>
+                <span style="font-size:12px; color:#888; margin-top:5px; display:block;">* 提示：修改节点或上报间隔后无需重启或重装，探针会在下一次心跳（几秒内）自动热更新配置。</span>
               </div>
 
             </div>
@@ -1176,6 +1173,11 @@ LOOP_COUNT=0
 IPV4="0"; IPV6="0"
 PING_CT="0"; PING_CU="0"; PING_CM="0"; PING_BD="0"
 
+REPORT_INTERVAL="${reportInterval}"
+PING_NODE_CT="${pingCt}"
+PING_NODE_CU="${pingCu}"
+PING_NODE_CM="${pingCm}"
+
 while true; do
   if [ \\$((LOOP_COUNT % 60)) -eq 0 ]; then
     ${cmdApp} -s -4 -m 3 https://cloudflare.com/cdn-cgi/trace 2>/dev/null | grep -q "ip=" && IPV4="1" || IPV4="0"
@@ -1190,9 +1192,9 @@ while true; do
       2) D_CT="gd-ct-dualstack.ip.zstaticcdn.com"; D_CU="gd-cu-dualstack.ip.zstaticcdn.com"; D_CM="gd-cm-dualstack.ip.zstaticcdn.com" ;;
     esac
     
-    CT_NODE="${pingCt}"
-    CU_NODE="${pingCu}"
-    CM_NODE="${pingCm}"
+    CT_NODE="\\$PING_NODE_CT"
+    CU_NODE="\\$PING_NODE_CU"
+    CM_NODE="\\$PING_NODE_CM"
     
     [ "\\$CT_NODE" = "default" ] && CT_NODE="\\$D_CT"
     [ "\\$CU_NODE" = "default" ] && CU_NODE="\\$D_CU"
@@ -1278,8 +1280,24 @@ while true; do
   
   PAYLOAD="{\\"id\\": \\"\\$SERVER_ID\\", \\"secret\\": \\"\\$SECRET\\", \\"metrics\\": { \\"cpu\\": \\"\\$CPU\\", \\"ram\\": \\"\\$RAM\\", \\"ram_total\\": \\"\\$RAM_TOTAL\\", \\"ram_used\\": \\"\\$RAM_USED\\", \\"swap_total\\": \\"\\$SWAP_TOTAL\\", \\"swap_used\\": \\"\\$SWAP_USED\\", \\"disk\\": \\"\\$DISK\\", \\"disk_total\\": \\"\\$DISK_TOTAL\\", \\"disk_used\\": \\"\\$DISK_USED\\", \\"load\\": \\"\\$LOAD\\", \\"uptime\\": \\"\\$UPTIME\\", \\"boot_time\\": \\"\\$BOOT_TIME\\", \\"net_rx\\": \\"\\$RX_NOW\\", \\"net_tx\\": \\"\\$TX_NOW\\", \\"net_in_speed\\": \\"\\$RX_SPEED\\", \\"net_out_speed\\": \\"\\$TX_SPEED\\", \\"os\\": \\"\\$OS\\", \\"arch\\": \\"\\$ARCH\\", \\"cpu_info\\": \\"\\$CPU_INFO\\", \\"processes\\": \\"\\$PROCESSES\\", \\"tcp_conn\\": \\"\\$TCP_CONN\\", \\"udp_conn\\": \\"\\$UDP_CONN\\", \\"ip_v4\\": \\"\\$IPV4\\", \\"ip_v6\\": \\"\\$IPV6\\", \\"ping_ct\\": \\"\\$PING_CT\\", \\"ping_cu\\": \\"\\$PING_CU\\", \\"ping_cm\\": \\"\\$PING_CM\\", \\"ping_bd\\": \\"\\$PING_BD\\", \\"virt\\": \\"\\$VIRT\\" }}"
   
-  ${cmdApp} -s -X POST -H "Content-Type: application/json" -d "\\$PAYLOAD" "\\$WORKER_URL" > /dev/null
-  sleep ${reportInterval}
+  # 接收 Cloudflare Worker 返回的最新配置进行热重载
+  RES=\\$(${cmdApp} -s -X POST -H "Content-Type: application/json" -d "\\$PAYLOAD" "\\$WORKER_URL" 2>/dev/null)
+  
+  if echo "\\$RES" | grep -q "INTERVAL="; then
+    NEW_INV=\\$(echo "\\$RES" | awk -F'INTERVAL=' '{print \\$2}' | awk -F'|' '{print \\$1}')
+    if [ -n "\\$NEW_INV" ] && [ "\\$NEW_INV" -eq "\\$NEW_INV" ] 2>/dev/null; then REPORT_INTERVAL=\\$NEW_INV; fi
+    
+    NEW_CT=\\$(echo "\\$RES" | awk -F'CT=' '{print \\$2}' | awk -F'|' '{print \\$1}')
+    [ -n "\\$NEW_CT" ] && PING_NODE_CT="\\$NEW_CT"
+    
+    NEW_CU=\\$(echo "\\$RES" | awk -F'CU=' '{print \\$2}' | awk -F'|' '{print \\$1}')
+    [ -n "\\$NEW_CU" ] && PING_NODE_CU="\\$NEW_CU"
+    
+    NEW_CM=\\$(echo "\\$RES" | awk -F'CM=' '{print \\$2}' | awk -F'|' '{print \\$1}')
+    [ -n "\\$NEW_CM" ] && PING_NODE_CM="\\$NEW_CM"
+  fi
+
+  sleep \\$REPORT_INTERVAL
 done
 EOF
 
@@ -1300,7 +1318,7 @@ EOF
 chmod +x /etc/init.d/cf-probe
 rc-update add cf-probe default
 rc-service cf-probe restart
-echo "✅ Alpine 探针安装成功！"
+echo "✅ Alpine 探针安装成功！热重载功能已启用。"
 `;
       } else {
         const sh_etc = "/etc/" + "systemd/" + "system";
@@ -1321,7 +1339,7 @@ EOF
 ${sh_sys} daemon-reload
 ${sh_sys} enable cf-probe.service
 ${sh_sys} restart cf-probe.service
-echo "✅ Linux 探针安装成功！"
+echo "✅ Linux 探针安装成功！热重载功能已启用。"
 `;
       }
 
@@ -1436,7 +1454,9 @@ echo "✅ Linux 探针安装成功！"
         ).run();
 
         ctx.waitUntil(checkOfflineNodes());
-        return new Response('OK', { status: 200 });
+        
+        // 返回包含最新配置的纯文本，供探针热更新 (避免使用 JQ 以保证最大系统兼容性)
+        return new Response(`INTERVAL=${sys.report_interval || '5'}|CT=${sys.ping_node_ct || 'default'}|CU=${sys.ping_node_cu || 'default'}|CM=${sys.ping_node_cm || 'default'}`, { status: 200 });
       } catch (e) {
         return new Response('Error', { status: 400 });
       }
