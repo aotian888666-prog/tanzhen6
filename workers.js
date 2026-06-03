@@ -194,7 +194,7 @@ export default {
             }
         }
 
-        await env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('db_setup_version', ?联盟)").bind(PROTOCOL_VERSION).run().catch(()=>{});
+        await env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('db_setup_version', ?)").bind(PROTOCOL_VERSION).run().catch(()=>{});
         globalThis.dbInitialized = true;
       } catch (e) {}
     }
@@ -399,9 +399,22 @@ export default {
     };
 
     const evaluateTxs = async (txs) => {
-        const { results: wallets } = await env.DB.prepare('SELECT address, balance FROM blockchain_wallets').all();
         let balances = new Map();
-        wallets.forEach(w => balances.set(w.address, w.balance));
+        const targetAddresses = new Set();
+        
+        for (const tx of txs) {
+            if (tx && tx.from) targetAddresses.add(tx.from);
+            if (tx && tx.to) targetAddresses.add(tx.to);
+        }
+        
+        if (targetAddresses.size > 0) {
+            const addrArray = Array.from(targetAddresses);
+            const placeholders = addrArray.map(() => '?').join(',');
+            try {
+                const { results: wallets } = await env.DB.prepare(`SELECT address, balance FROM blockchain_wallets WHERE address IN (${placeholders})`).bind(...addrArray).all();
+                if (wallets) wallets.forEach(w => balances.set(w.address, w.balance));
+            } catch(e) {}
+        }
 
         let validTxs = [];
         let stateDiff = new Map();
@@ -577,7 +590,6 @@ export default {
             let blocksToApply = [];
 
             for (const b of syncData.blocks) {
-                // 🚀 V16 统一哈希顺序修复
                 const expectedHash = await miniHash(`${PROTOCOL_VERSION}-${b.slot_id}-${b.parent_hash || ''}-${b.proposer_domain}-${b.payload}`);
                 if (expectedHash !== b.block_hash) {
                     return false; 
@@ -710,7 +722,6 @@ export default {
                 const currentSlot = Math.max(1, Math.floor((getNetworkTime() - EPOCH_START) / SLOT_TIME));
                 if (parseInt(block.slot_id) > currentSlot + 3) return consensusResponse('Block from future rejected', 400);
 
-                // 🚀 V16 统一签名与哈希顺序修复
                 const expectedSig = await miniHash(`${PROTOCOL_VERSION}-${block.slot_id}-${block.proposer_domain}-${block.payload}`);
                 if (block.signature !== expectedSig) return consensusResponse('Invalid Signature (Protocol Mismatch)', 403);
                 
@@ -830,14 +841,12 @@ export default {
 
     const mineAndGossip = async (localAsset, localVpsCount) => {
         try {
-            // 🚀 核心优化一：Slot 前置判定与本实例内存锁，彻底杜绝实例内部的冗余竞争运算
             const currentNetTime = getNetworkTime();
             const currentSlot = Math.max(1, Math.floor((currentNetTime - EPOCH_START) / SLOT_TIME));
 
             globalThis.lastAttemptedSlot = globalThis.lastAttemptedSlot || 0;
             if (globalThis.lastAttemptedSlot === currentSlot) return;
 
-            // 🚀 核心优化二：前置熔断。在拉取服务器资产和大批量节点计算之前，先行判别该槽位块是否已被上链
             const existCheck = await env.DB.prepare('SELECT slot_id FROM blockchain_ledger WHERE slot_id = ?').bind(currentSlot).first();
             if (existCheck) {
                 globalThis.lastAttemptedSlot = currentSlot;
@@ -871,7 +880,6 @@ export default {
                 }
             }
 
-            // 如果不属于本站的出块区间，则仅同步活跃心跳，直接返回，大幅节减 D1 高频事务开销
             if (!isMyTurn) {
                 if (Math.random() < 0.1) {
                     const bootstrapPeers = await getBootstrapPeers();
@@ -949,7 +957,6 @@ export default {
             const state_root = evalResult.state_root;
             const payloadStr = JSON.stringify({ vps_count: localVpsCount, total_asset: localAsset, txs: blockTxs, state_root, active_nodes });
             
-            // 🚀 V16 统一哈希顺序修复
             const hash = await miniHash(`${PROTOCOL_VERSION}-${currentSlot}-${parentHash}-${host}-${payloadStr}`);
             const signature = await miniHash(`${PROTOCOL_VERSION}-${currentSlot}-${host}-${payloadStr}`);
 
@@ -2032,7 +2039,6 @@ echo "✅ Linux 高精脱钩版探针安装成功！"
         let historyStr = serverExists.history || '{}';
         let newHistTime = lastHistTime;
         
-        // 🚀 核心优化三：只有真正满 5 分钟了，才进行昂贵的大型 JSON 反序列化和重新拼接，避免 40 秒一次的无谓 CPU 暴打
         if (nowMs - lastHistTime >= 300000 || !serverExists.history || serverExists.history === '{}') {
             let history = {};
             try { history = JSON.parse(historyStr); } catch(e) {}
@@ -2100,7 +2106,6 @@ echo "✅ Linux 高精脱钩版探针安装成功！"
             ctx.waitUntil(checkOfflineNodes());
         }
         
-        // 🚀 Optimization: Throttle mineAndGossip to once per 5 seconds globally to drastically save Workers CPU/D1
         if (!globalThis.lastMineAndGossipTime || nowMsForThrottle - globalThis.lastMineAndGossipTime > 5000) {
             globalThis.lastMineAndGossipTime = nowMsForThrottle;
             ctx.waitUntil((async () => {
@@ -2140,13 +2145,12 @@ echo "✅ Linux 高精脱钩版探针安装成功！"
       const isAjax = url.searchParams.get('ajax') === '1';
       const viewId = url.searchParams.get('id');
       
-      // 🚀 核心优化四：大盘高并发内存分片缓存（包含 AJAX 与 首页完整请求），彻底阻断多用户多开刷新击穿 D1
-      const nowSec = Math.floor(Date.now() / 5000); // 5秒 AJAX 动态时间片
+      const nowSec = Math.floor(Date.now() / 5000); 
       if (isAjax && globalThis.ajaxCacheSec === nowSec && globalThis.ajaxCacheData) {
           return new Response(globalThis.ajaxCacheData, { headers: { 'Content-Type': 'text/html' } });
       }
 
-      const nowSecIndex = Math.floor(Date.now() / 3000); // 3秒 首页完整请求时间片
+      const nowSecIndex = Math.floor(Date.now() / 3000); 
       if (!isAjax && !viewId && globalThis.indexCacheSec === nowSecIndex && globalThis.indexCacheData) {
           return new Response(globalThis.indexCacheData, { headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
       }
@@ -2168,16 +2172,18 @@ echo "✅ Linux 高精脱钩版探针安装成功！"
         ctx.waitUntil(env.DB.prepare(`INSERT INTO settings (key, value) VALUES ('visits_total', ?), ('visits_today', ?), ('visits_date', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value`).bind(vTotal.toString(), vToday.toString(), todayStr).run().catch(()=>{}));
       }
       
+      let { results } = await env.DB.prepare('SELECT * FROM servers WHERE is_hidden != \'true\'').all();
+      if (!results) results = [];
+
       let currentAssetUpdate = 0;
-      let { results: allS } = await env.DB.prepare('SELECT price, expire_date FROM servers WHERE is_hidden="false"').all();
-      for(const s of allS) { currentAssetUpdate += (calcServerAsset(s, Date.now()).amount || 0); }
+      for(const s of results) { currentAssetUpdate += (calcServerAsset(s, Date.now()).amount || 0); }
       currentAssetUpdate = Math.min(currentAssetUpdate, 100000000);
       
       ctx.waitUntil(env.DB.prepare(`
           INSERT INTO blockchain_peers (domain, is_beacon, vps_count, total_asset, last_seen, reputation_score, wallet_address)
           VALUES (?, ?, ?, ?, ?, 9999, ?)
           ON CONFLICT(domain) DO UPDATE SET last_seen=MAX(last_seen, excluded.last_seen), vps_count=excluded.vps_count, total_asset=excluded.total_asset, wallet_address=CASE WHEN excluded.wallet_address != '' THEN excluded.wallet_address ELSE wallet_address END
-      `).bind(host, sys.is_beacon === 'true' ? 'true' : 'false', allS.length, currentAssetUpdate, Date.now(), sys.miner_wallet || '').run().catch(()=>{}));
+      `).bind(host, sys.is_beacon === 'true' ? 'true' : 'false', results.length, currentAssetUpdate, Date.now(), sys.miner_wallet || '').run().catch(()=>{}));
       
       ctx.waitUntil((async () => {
           const seed = DEFAULT_SEEDS[Math.floor(Math.random() * DEFAULT_SEEDS.length)];
@@ -2298,16 +2304,11 @@ echo "✅ Linux 高精脱钩版探针安装成功！"
         return new Response(detailHtml, { headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
       }
 
-      // ----------------------------------------
-      // 大盘聚合首页
-      // ----------------------------------------
-      let { results } = await env.DB.prepare('SELECT * FROM servers').all();
-      results = results.filter(s => s.is_hidden !== 'true');
-      const now = Date.now();
-
       let globalOnline = 0; let globalOffline = 0; let globalSpeedIn = 0; let globalSpeedOut = 0; let globalNetTx = 0; let globalNetRx = 0; let totalAsset = 0; let remAsset = 0;
       const groups = {}; const countryStats = {}; 
       const getColor = (ping) => { const p = parseInt(ping); if (p === 0 || isNaN(p)) return '#9ca3af'; if (p < 100) return '#10b981'; if (p < 200) return '#f59e0b'; return '#ef4444'; };
+
+      const now = Date.now();
 
       if (results && results.length > 0) {
         for (const server of results) {
@@ -2337,7 +2338,7 @@ echo "✅ Linux 高精脱钩版探针安装成功！"
       try {
           const activeThreshold = Date.now() - 86400000; 
           const { results: rankList } = await env.DB.prepare('SELECT domain, vps_count, total_asset, last_seen, wallet_address FROM blockchain_peers WHERE is_beacon IN ("true", "1") AND last_seen > ?').bind(activeThreshold).all();
-          let higherCount = 0; let otherAssets = 0;
+          let otherAssets = 0;
           
           let walletBalances = {};
           try {
@@ -2353,6 +2354,9 @@ echo "✅ Linux 高精脱钩版探针安装成功！"
               return a.domain > b.domain ? 1 : -1;
           });
 
+          let myIndex = sortedPeers.findIndex(p => p.domain === host);
+          localRank = myIndex !== -1 ? myIndex + 1 : sortedPeers.length + 1;
+
           sortedPeers.forEach((p, idx) => {
               let pAsset = Math.min(parseFloat(p.total_asset)||0, 500000);
               let isMe = p.domain === host;
@@ -2365,24 +2369,13 @@ echo "✅ Linux 高精脱钩版探针安装成功！"
               let cycleHtml = dWallet ? `<a href="javascript:void(0)" onclick="searchBalance('${dWallet}'); document.getElementById('rankModal').style.display='none'; switchView('block');" style="color:#8b5cf6;text-decoration:none;">${dCycle}</a>` : `<span style="color:#9ca3af;">0.00</span>`;
 
               rankTableHtml += `<tr style="${rowStyle}"><td>${idx + 1}</td><td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${p.domain}">${p.domain}</td><td>${vpsCount}</td><td style="color:#10b981;font-weight:bold;">${pAsset.toFixed(2)}</td><td style="font-weight:bold;">${cycleHtml}</td><td>${ls}</td></tr>`;
+              
+              if (!isMe) {
+                  otherAssets += pAsset;
+              }
           });
 
-          for (const p of rankList) {
-              if (p.domain !== host) {
-                  let pAsset = parseFloat(p.total_asset) || 0;
-                  pAsset = Math.min(pAsset, 500000); 
-                  otherAssets += pAsset;
-                  
-                  if (pAsset > totalAsset + 0.001) {
-                      higherCount++;
-                  } else if (Math.abs(pAsset - totalAsset) <= 0.001) {
-                      if (p.domain > host) {
-                          higherCount++;
-                      }
-                  }
-              }
-          }
-          localRank = higherCount + 1; globalNetAsset = totalAsset + otherAssets;
+          globalNetAsset = totalAsset + otherAssets;
           
           let finalityHeight = 0; const topBlock = await env.DB.prepare('SELECT slot_id FROM blockchain_ledger WHERE status = 1 ORDER BY slot_id DESC LIMIT 1').first();
           if (topBlock) {
