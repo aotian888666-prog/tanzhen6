@@ -33,8 +33,7 @@
 
 10 台 VPS 以下可以使用 cf 版本轻量部署，10 台 VPS 以上建议使用 docker 部署在免费容器 northflank：[点击访问 Docker 版](https://github.com/a63414262/server-monitor)
 
-基于 Cloudflare Workers 和 D1 数据库构建的轻量级、零成本、高定制化的服务器探针大盘。
-完美复刻了商业级探针（如 Nezha）的核心体验，并**跨时代地引入了 Web3 去中心化共识网络机制**，无需额外部署任何服务端 VPS！完全白嫖 Cloudflare 的免费 Serverless 资源。
+基于 Cloudflare Workers 和 D1 数据库构建的轻量级、零成本、高定制化的服务器探针大盘。完美复刻了商业级探针（如 Nezha）的核心体验，并跨时代地引入了 Web3 去中心化共识网络机制，无需额外部署任何服务端 VPS！完全白嫖 Cloudflare 的免费 Serverless 资源。
 
 ## ✨ 核心特性
 
@@ -47,9 +46,9 @@
 * **V16 Pure Chain 大一统协议：** 底层采用最新的硬分叉哈希验证与缓冲扩容技术，完美解决同高度分叉碰撞。
 
 ### 📉 极致的差分采集算法 (省额度神器)
-* **探针端边缘过滤：** 彻底告别无脑定时上报！Agent 端内置高精度的动态差分比对算法。只有当 CPU 波动 >10%、内存波动 >5% 或网速突变超过 30% 时，才会触发完整数据上报。
-* **微损心跳保活：** 在服务器闲置或数据平稳期间，探针会自动降级为极低负载的 Ping 心跳包。最高可节省 80% 的 Cloudflare Workers 请求数与 D1 数据库写入额度，确保完全不超免费套餐限制。
-* **V8 内存级缓存穿透保护：** Worker 端采用 V8 引擎全局内存 (globalThis) 实现了 5000ms 级别的请求限流 (Throttling)，阻断高并发与恶意刷量，完美保护 Serverless 免费额度。
+* **Agent 10 档智能平滑调度：** 探针脱离固定休眠配置，正式转为线性反馈控制器。基于负载综合指数 (0-100)，自动在 深度休眠 (120秒) 到 崩溃级监控 (3秒) 之间平滑无缝切换。
+* **探针端边缘过滤：** 告别无脑定时上报！只有当 CPU 波动 >10%、内存波动 >5% 或网速突变超过 30% 时，才会触发完整数据上报。
+* **V8 内存级缓存穿透保护：** Worker 端采用 V8 引擎全局内存 (globalThis) 实现了 5000ms 级别的请求限流 (Throttling)，内置令牌桶防雪崩与 HTTP 429 过载回退机制，完美保护 D1 数据库免费额度。
 
 ### 🎨 极致的视觉与个性化体验
 * **高级自定义 CSS / JS 注入**：支持完全自定义 CSS 主题，支持原生 JS 动态特效注入，轻松实现网易云外链作为背景音乐自动单曲循环播放。
@@ -65,7 +64,6 @@
 * **月度流量重置**：内置流量增量累加机制，支持开启每月 1 号自动重置统计，无惧被控端 VPS 重启导致的数据清零。
 
 ### 🛡️ 隐私、安全与管理控制
-* **Agent 上报频率自定义**：后台支持一键修改全网探针的上报心跳间隔（如 5 秒 / 10 秒）。
 * **一键私密模式与节点隐藏**：吃灰神机不想公开？在后台取消勾选“公开访问”即可。同时支持单独隐藏某台具体的 VPS，只在后台可见。
 * **模块化展示开关**：价格、到期时间、带宽、流量、甚至是数字资产价值等敏感信息，可在后台一键控制前台展示。
 
@@ -455,6 +453,38 @@ rm /usr/local/bin/cf-probe.sh
 
 MIT License
 
-```
 
-```
+⚠️ 附录：配置过程中的常见盲点与排错指南
+
+在配置与部署此监控项目时，新手极易触发以下 3 个盲点报错。请参考预防方案：
+
+盲点 1：Cloudflare Worker 抛出 401 Unauthorized 或客户端注册失败
+
+    报错原因：你在 Bash 安装命令中传递的 <API_SECRET> 与 Cloudflare Worker 环境变量 API_SECRET 不一致，导致探针身份验证被拦截。
+
+    预防/整改命令：
+    请检查并重新在 VPS 终端执行正确的安装命令：
+    Bash
+
+    # 确保尾部参数与 Worker 环境中的 API_SECRET 完全一致，切勿带特殊转义字符问题
+    curl -sL https://你的域名.workers.dev/install.sh?os=debian | bash -s <SERVER_ID> 你的确切密码
+
+盲点 2：Cloudflare D1 数据库未正确绑定引发 TypeError: Cannot read properties of undefined (reading 'prepare')
+
+    报错原因：Worker 代码中通过 env.DB.prepare 调用数据库，如果在 Settings (设置) -> Variables (变量) 中绑定的名称不是纯大写的 DB，或者忘了绑定 D1，就会导致运行时崩溃。
+
+    整改方案：
+    请前往 Cloudflare 仪表盘，进入该 Worker -> Settings -> Variables and Secrets -> D1 Database Bindings。将 Variable name 严格设为 DB，然后关联你创建的 probe-db，最后点击 Deploy 重新部署。
+
+盲点 3：Alpine 系统环境缺少必要工具导致 command not found: curl
+
+    报错原因：在精简版的 Alpine Linux 中，系统可能原生未预装 curl 或 bash 环境，直接复制安装命令会提示找不到命令或无法执行。
+
+    预防/整改命令：
+    在执行探针安装命令前，先主动补齐系统依赖：
+    Bash
+
+    apk update && apk add curl bash
+    # 然后再执行安装
+    curl -sL https://你的域名.workers.dev/install.sh?os=alpine | bash -s <SERVER_ID> <API_SECRET>
+
