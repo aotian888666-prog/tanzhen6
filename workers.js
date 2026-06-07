@@ -44,16 +44,6 @@ export default {
           }
         }
 
-        const checkNodes = await env.DB.prepare("SELECT value FROM settings WHERE key = 'cached_nodes_data'").first();
-        if (!checkNodes) {
-           try {
-               const res = await fetch('https://raw.githubusercontent.com/a63414262/CF-Server-Monitor-Pro/refs/heads/main/nodes.json');
-               if (res.ok) {
-                   const dataText = await res.text();
-                   await env.DB.prepare("INSERT INTO settings (key, value) VALUES ('cached_nodes_data', ?)").bind(dataText).run();
-               }
-           } catch(e) {}
-        }
         globalThis.dbInitialized = true;
       } catch (e) {}
     }
@@ -115,11 +105,7 @@ export default {
         ];
     }
     
-    let defaultPeersStr = 'tanzhen.kejikkk.com';
-    if (cachedNodes && Array.isArray(cachedNodes.peers)) {
-        defaultPeersStr = cachedNodes.peers.map(p => p.replace('https://','').replace('http://','').replace(/\/$/,'')).join(',');
-    }
-    if (!sys.seed_nodes) sys.seed_nodes = defaultPeersStr;
+    if (!sys.seed_nodes) sys.seed_nodes = '';
 
     // 安全获取命令 (使用字符串拼接拆分敏感词，防 CF UI 编辑器直接拦截)
     const getCmds = (s) => {
@@ -183,8 +169,7 @@ export default {
             <span style="margin-right: 15px;">👁️ 历史总访问：<b style="color: #3b82f6;">${sys.visits_total || 0}</b> 次</span>
             <span>🔥 今日访问：<b style="color: #10b981;">${sys.visits_today || 0}</b> 次</span>
         </div>
-        Powered by <a href="https://github.com/a63414262/CF-Server-Monitor-Pro" target="_blank" style="color: #3b82f6; text-decoration: none; font-weight: 600;">CF-Server-Monitor-Pro (Gossip Edition)</a> | 
-        <a href="https://www.youtube.com/@%E7%A7%91%E6%8A%80KKK" target="_blank" style="color: #ef4444; text-decoration: none; font-weight: 600;">▶️ 小K分享频道</a>
+        Powered by CF-Server-Monitor-Pro (Gossip Edition)
       </div>
     `;
 
@@ -578,16 +563,7 @@ export default {
           return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } });
         }
         else if (data.action === 'pull_github') {
-          try {
-            const res = await fetch('https://raw.githubusercontent.com/a63414262/CF-Server-Monitor-Pro/refs/heads/main/nodes.json');
-            if (res.ok) {
-              const dataText = await res.text();
-              await env.DB.prepare("INSERT INTO settings (key, value) VALUES ('cached_nodes_data', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").bind(dataText).run();
-              return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } });
-            } else {
-              return new Response(JSON.stringify({ error: 'fetch failed' }), { status: 400 });
-            }
-          } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 400 }); }
+          return new Response(JSON.stringify({ error: 'disabled' }), { status: 403 });
         }
       } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 400 }); }
     }
@@ -686,7 +662,7 @@ export default {
           <div class="settings-grid">
             <div>
               <div class="form-group">
-                <label>🎨 前端主题风格 <button onclick="pullGithubNodes(event)" type="button" class="btn btn-green" style="margin-left:10px; font-size:12px; padding:3px 8px;">🔄 手动更新测速/主题数据</button></label>
+                <label>🎨 前端主题风格</label>
                 <select id="cfg_theme" onchange="toggleCustomCss()">
                   ${themeSelectOptions}
                 </select>
@@ -754,8 +730,8 @@ export default {
                 <input type="text" id="cfg_asset_currency" value="${sys.asset_currency || '元'}" style="width: 120px; padding: 6px;">
               </div>
               <div class="form-group" id="ranking_api_group" style="display: block; margin-left: 0px; margin-top: 10px; margin-bottom: 15px;">
-                <label style="font-size: 14px; color:#10b981; font-weight: bold;">✅ 已通过 Gossip 加入排名</label>
-                <input type="hidden" id="cfg_seed_nodes" value="still-cell-000f.a6856191801.workers.dev">
+                <label style="font-size: 14px; font-weight: 600;">📡 Gossip 种子节点 (逗号分隔)</label>
+                <input type="text" id="cfg_seed_nodes" value="${sys.seed_nodes || ''}" placeholder="留空则不参与 Gossip 排名">
               </div>
 
               <hr style="margin: 20px 0; border: none; border-top: 1px dashed #ccc;">
@@ -832,26 +808,6 @@ export default {
         ${getFooterHtml(sys)}
 
         <script>
-          async function pullGithubNodes(event) {
-            const btn = event.target;
-            const originalText = btn.innerText;
-            btn.innerText = '正在拉取...';
-            btn.disabled = true;
-            try {
-              const res = await fetch('${sys.admin_path}/api', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'pull_github' }) });
-              if (res.ok) {
-                alert('✅ Github 最新主题及 Peers 测速节点拉取成功！页面将自动刷新加载新主题。');
-                location.reload();
-              } else {
-                alert('❌ 拉取失败，请检查网络或稍后重试');
-              }
-            } catch (e) {
-              alert('❌ 请求发生错误: ' + e.message);
-            }
-            btn.innerText = originalText;
-            btn.disabled = false;
-          }
-
           function toggleCustomCss() {
             const select = document.getElementById('cfg_theme');
             const selectedOption = select.options[select.selectedIndex];
